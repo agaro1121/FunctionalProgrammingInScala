@@ -23,7 +23,7 @@ def uncurry[A,B,C](f: A => B => C): (A, B) => C = {
 
 ////////////////////////////////////////////////
 def compose[A,B,C](f: B => C, g: A => B): A => C = {
-    (a: A) => C => f(g(a))
-    // g andThen f
-    //f compose(g)
+    a:A => f(g(a))
+    // f andThen g
+    // g compose f
 }
