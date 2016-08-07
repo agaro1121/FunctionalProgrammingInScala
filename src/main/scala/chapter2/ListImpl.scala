@@ -35,7 +35,7 @@ object List {
   val example2 = List(1, 2, 3)
   val total = sum(example)
 
-  /*
+  /**
   * EXERCISE 2: Implement the function tail for "removing" the first element of a List. Notice the function takes constant time.
   * */
   def tail[A](l: List[A]): List[A] = l match {
@@ -43,7 +43,7 @@ object List {
     case Cons(head, tail) => tail
   }
 
-  /*
+  /**
   * EXERCISE 3: Generalize tail to the function drop, which removes the first n elements from a list.
   * */
   def drop[A](l: List[A], numElementsToDrop: Int): List[A] = {
@@ -124,7 +124,7 @@ object List {
     }
   }
 
-  /*
+  /**
   * EXERCISE 11: Write sum, product, and a function to compute the length of a list using foldLeft.
   * */
   def sum3(l: List[Int]) = foldLeft(l,0)(_+_)
@@ -133,7 +133,7 @@ object List {
 
   def length2[A](l: List[A]): Int = foldLeft(l,0)((n,_) => n + 1)
 
-  /*
+  /**
   * EXERCISE 12: Write a function that returns the reverse of a list
    * so given List(1,2,3) it returns List(3,2,1). See if you can write it using a fold.
   * */
@@ -142,15 +142,72 @@ object List {
   /*
   * EXERCISE 13 (hard): Can you write foldLeft in terms of foldRight? How about the other way around?
   * */
+//  def foldLeft2[A,B](l: List[A], z: B)(f: (B, A) => B): B = foldRight(l,Nil: List[A])((a,b) => Cons(a,b))
 
-  /*
-  * EXERCISE 14: Implement append in terms of either foldLeft or foldRight.
+  /**
+  * EXERCISE 14: Implement append in terms of either foldLeft or foldRight. (list append list)
   * */
+  def append[A](listA: List[A], listB: List[A]): List[A] =
+//  foldLeft(reverse(listA),listB)((acc,i) => Cons(i,acc))
+  foldRight(listA,listB)((i,acc) => Cons(i,acc))
 
-  /*
+
+  /**
   * EXERCISE 15 (hard): Write a function that concatenates a list of lists into a single list.
   * Its runtime should be linear in the total length of all lists. Try to use functions we have already defined.
   * */
+  def flatten[A](list: List[List[A]]): List[A] = foldLeft(list,Nil: List[A])((acc,i) => append(acc,i))
+
+  /**
+    * EXERCISE 16: Write a function that transforms a list of integers by adding 1 to each element.
+    * (Reminder: this should be a pure function that returns a new List!)
+    *
+    * EXERCISE 17: Write a function that turns each value in a List[Double] into a String.
+    *
+    * EXERCISE 18: Write a function map, that generalizes modifying each element in a list while maintaining the structure of the list.
+    * */
+  def map[A,B](list: List[A])(f: A => B): List[B] = list match {
+    case Nil => Nil
+    case Cons(h,t) => Cons(f(h),map(t)(f))
+  }
+
+  /**
+    * EXERCISE 19: Write a function filter that removes elements from a list
+    * unless they satisfy a given predicate. Use it to remote all odd numbers from a List[Int].
+    * */
+  def filter[A](list: List[A])(f: A => Boolean): List[A] =
+    foldRight(list,Nil: List[A])((i,acc) => if(f(i)) {Cons(i,acc)} else acc)
+
+  /**
+    * EXERCISE 20: Write a function flatMap, that works like map except that
+    * the function given will return a list instead of a single result, and
+    * that list should be inserted into the final resulting list.
+    * */
+  def flatMap[A,B](list: List[A])(f: A => List[B]): List[B] =
+  flatten(map(list)(f))
+
+  /**
+    * EXERCISE 21: Can you use flatMap to implement filter?
+    * */
+  def filterUsingFlatMap[A](list: List[A])(f: A => Boolean): List[A] = ???
+
+  /**
+    * EXERCISE 22: Write a function that accepts two lists and
+    * constructs a new list by adding corresponding elements.
+    * For example, List(1,2,3) and List(4,5,6) becomes List(5,7,9).
+    * */
+
+
+  /**
+    * EXERCISE 23: Generalize the function you just wrote so that it's not specific to integers or addition.
+    * */
+
+  /**
+    * EXERCISE 24 (hard): As an example, implement hasSubsequence
+    * for checking whether a List contains another List as a subsequence.
+    * For instance, List(1,2,3,4) would have
+    * List(1,2), List(2,3), and List(4) as subsequences, among others.
+    * */
 
 }
 
@@ -159,7 +216,9 @@ object Main extends App {
   import List._
 
   val testList = List(1, 2, 3, 4, 5)
+  val testList2 = List(6,7,8,9,10)
   val testListD = List[Double](1, 2, 3, 4, 5)
+
 
   val x = List(1, 2, 3, 4, 5) match {
     case Cons(x, Cons(2, Cons(4, _))) => x
@@ -184,4 +243,12 @@ object Main extends App {
   println(product3(testListD))
   println(length2(testList))
   println(reverse(testList))
+
+  println(append(testList,Cons(6,Nil)))
+  println(flatten(List(testList, testList2)))
+  println(map(testList)((x: Int) => x + 1))
+  println(map(testListD)((d: Double) => "string="+d.toString))
+  println(filter(testList)((x: Int) => x % 2 == 0))
+
+  println(flatMap(List(1,2,3))(i => List(i,i)))
 }
