@@ -31,13 +31,23 @@ trait Option[+A] {
 
   def orElse[B >: A](ob: => Option[B]): Option[B] = map(Some(_)).getOrElse(ob)
 
-  def filter(f: A => Boolean): Option[A] = map { x => if (f(x)) x else Nothing }
+  def filter(f: A => Boolean): Option[A] = flatMap { x => if (f(x)) Some(x) else None }
 
   //flatMap((a: A) => if (f(a)) Some(a) else None)
 
 }
 
 object Option {
+
+  import java.util.regex._
+
+  def pattern(s: String): Option[Pattern] =
+    try {
+      Some(Pattern.compile(s))
+    } catch {
+      case e: PatternSyntaxException => None
+    }
+
   def mkMatcher_1(pat: String): Option[String => Boolean] =
     for {
       p <- pattern(pat)
@@ -82,7 +92,6 @@ object Option {
   def traverse[A, B](a: List[A])(f: A => Option[B]): Option[List[B]] =
   a.foldRight[Option[List[B]]](Some(Nil))((o, acc) => map2(f(o), acc)(_ :: _))
 
-  
 
 }
 
