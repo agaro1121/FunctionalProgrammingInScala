@@ -7,11 +7,13 @@ case object Nil extends List[Nothing] {
 }
 
 case class Cons[+A](head: A, tail: List[A]) extends List[A] {
-  override def toString: String = {
-    val start = "{ "
-    val end = "}"
-    start + head + " , " + tail.toString + end
-  }
+
+//  override def toString: String = {
+//    val start = "{ "
+//    val end = "}"
+//    start + head + " , " + tail.toString + end
+//  }
+  override def toString: String = s"Cons(...)"
 }
 
 object List {
@@ -27,9 +29,14 @@ object List {
     case Cons(x, xs) => x * product(xs)
   }
 
-  def apply[A](as: A*): List[A] =
-    if (as.isEmpty) Nil
-    else Cons(as.head, apply(as.tail: _*))
+  def apply[A](as: A*): List[A] = {
+    def loop(l: Seq[A], acc: List[A]): List[A] = l match {
+      case Seq() ⇒ acc
+      case Seq(head, tail @ _*) ⇒ loop(tail,Cons(head,acc) )
+    }
+
+    reverse(loop(as,Nil: List[A]))
+  }
 
   val example = Cons(1, Cons(2, Cons(3, Nil)))
   val example2 = List(1, 2, 3)
@@ -93,11 +100,28 @@ object List {
     }
   }
 
-  def foldRight[A, B](l: List[A], z: B)(f: (A, B) => B): B =
-    l match {
-      case Nil => z
-      case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+  import scala.util.control.TailCalls._
+
+  type TailRec[A] = Free[Function0, A]
+
+
+  def _foldRight[A, B](list: List[A], zero: B)(f: (A, TailRec[B]) ⇒ TailRec[B]): TailRec[B] = {
+    list match {
+      case Nil ⇒ done(zero)
+      case Cons(x, xs) ⇒ tailcall {
+        _foldRight(xs, zero)(f)
+          .flatMap(b ⇒ f(x, done(b)))
+      }
     }
+  }
+
+  def foldRight[A, B](l: List[A], z: B)(f: (A, B) => B): B = _foldRight(l, z)((a, trb) ⇒ trb.map(f(a, _))).result
+
+//  def foldRight[A, B](l: List[A], z: B)(f: (A, B) => B): B = {
+//    l match {
+//      case Nil => z
+//      case Cons(x, xs) => f(x, foldRight(xs, z)(f))
+//    }
 
   def sum2(l: List[Int]) =
     foldRight(l, 0.0)(_ + _)
@@ -208,6 +232,11 @@ object List {
     * For instance, List(1,2,3,4) would have
     * List(1,2), List(2,3), and List(4) as subsequences, among others.
     * */
+
+
+
+  def foldRightViaFoldleft[A, B](l: List[A], z: B)(f: (A, B) => B): B =
+    foldLeft(l,z)((b, a) ⇒ f(a, b))
 
 }
 
