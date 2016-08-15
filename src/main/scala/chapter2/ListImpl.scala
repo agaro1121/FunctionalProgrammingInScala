@@ -102,8 +102,6 @@ object List {
 
   import scala.util.control.TailCalls._
 
-  type TailRec[A] = Free[Function0, A]
-
 
   def _foldRight[A, B](list: List[A], zero: B)(f: (A, TailRec[B]) ⇒ TailRec[B]): TailRec[B] = {
     list match {

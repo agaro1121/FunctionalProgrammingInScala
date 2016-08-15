@@ -72,18 +72,34 @@ sealed trait Stream[+A] {
   /**
     * Hard: Implement headOption using foldRight.
     *  */
+  def headOptionWithFoldRight: Option[A] =
+  foldRight(Option.empty[A])((a, _) => Option(a))
 
   /**
     * Implement:
     * map, filter, append, and flatMap using foldRight.
     * The append method should be non-strict in its argument.
     * */
+  def map[B](f: A => B): Stream[B] =
+    foldRight(Empty: Stream[B])((a, acc) => cons(f(a), acc))
+
+  def filter(f: A => Boolean): Stream[A] =
+    foldRight(Empty: Stream[A])((a,acc) => if(f(a)) cons(a,acc) else acc)
+
+  def append[B >: A](streamB: => Stream[B]): Stream[B] =
+    foldRight(streamB)((a, acc) => cons(a,acc))
+
+  def flatMap[B](f: A => Stream[B]): Stream[B] =
+    foldRight(empty[B])((a, acc) => f(a).append(acc))
 
   /**
     * foldLeft in terms of foldRight
     * */
   def foldLeft[B](z: B)(f: (B, A) ⇒ B): B =
-    ???
+    foldRight(z)((a,acc) => f(acc,a))
+
+  def find(p: A => Boolean): Option[A] =
+    filter(p).headOption
 
 
 }
@@ -118,4 +134,6 @@ object MainStream extends App {
   println(Stream(1, 2, 3).take(2).toList)
   println(testStream.forAll(_ % 2 == 0))
   println(testStreamEven.forAll(_ % 2 == 0))
+
+  println(Stream(1,2,3,4).map(_ + 10).filter(_ % 2 == 0).toList)
 }
